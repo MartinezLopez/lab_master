@@ -32,6 +32,9 @@ class VentanaInfo(QtGui.QWidget):
   
   def inicializa(self, texto):
     win = QtGui.QMessageBox()
+    win.timer = QtCore.QTimer(self)
+    win.timer.timeout.connect(win.close)
+    win.timer.start(10000) # Se cierra automaticamente a los 10 segundos
     win.setInformativeText(texto)
     win.setWindowTitle('Aviso')
     win.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/lab_master/img/icono.gif'))
