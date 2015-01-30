@@ -105,7 +105,7 @@ class VentanaPrincipal(QtGui.QWidget):
     grid.addWidget(desp_lambda_d, 4, 5)
     grid.addWidget(bot_aceptar, 5, 3)
     
-    bot_aceptar.clicked.connect(lambda: self.aceptar(desp_tasa_u.currentText(), desp_long_u.currentText(), desp_lambda_u.currentText()))
+    bot_aceptar.clicked.connect(lambda: self.aceptar(desp_tasa_u.currentText(), desp_long_u.currentText(), desp_lambda_u.currentText(), desp_tasa_d.currentText(), desp_long_d.currentText(), desp_lambda_d.currentText()))
     
     self.setLayout(grid)
     #self.setGeometry(100, 100, 500, 500)
@@ -113,9 +113,9 @@ class VentanaPrincipal(QtGui.QWidget):
     #self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/Aplicacion/img/icono.gif'))
     self.show()
     
-  def aceptar(self, tasa_u, long_u, lambda_u):
+  def aceptar(self, tasa_u, long_u, lambda_u, tasa_d, long_d, lambda_d):
     # Diccionarios
-    base_tiempos = {"5 Mbps":'50ns', "20 Mbps":'10ns', "70 Mbps":'5ns', "150 Mbps":'2.5ns'}
+    base_tiempos = {"5 Mbps":'25ns', "20 Mbps":'10ns', "70 Mbps":'5ns', "150 Mbps":'2.5ns'}
     
     self.osc.set_horizontal(base_tiempos[str(tasa_u)]) #Por los qstring de qt4
     self.osc.set_vertical("1", "500mv", "DC", "1")
@@ -130,15 +130,19 @@ class VentanaPrincipal(QtGui.QWidget):
       medidas , inc_tiempo = self.osc.get_data('1', 500, 2000, '1')
       lista_medidas.append(medidas)
     
-    self.ojo1 = DisplayOjo(lista_medidas, inc_tiempo)
+    self.ojo1 = DisplayOjo(lista_medidas, inc_tiempo, "Enlace ascendente")
     self.ojo1.show()
     
+    self.osc.set_horizontal(base_tiempos[str(tasa_d)]) #Por los qstring de qt4
+    #self.osc.set_vertical("2", "500mv", "DC", "1")
+    
     lista_medidas = []
+    # Toma 32 trazas del osciloscopio
     for i in range(32):
       medidas , inc_tiempo = self.osc.get_data('2', 500, 2000, '1')
       lista_medidas.append(medidas)
     
-    self.ojo2 = DisplayOjo(lista_medidas, inc_tiempo)
+    self.ojo2 = DisplayOjo(lista_medidas, inc_tiempo, "Enlace descendente")
     self.ojo2.show()
     
     # Quitamos el disiparo externo
@@ -148,11 +152,11 @@ class VentanaPrincipal(QtGui.QWidget):
 
 class DisplayOjo(QtGui.QWidget):
   
-  def __init__(self, medidas, tiempo):
+  def __init__(self, medidas, tiempo, num):
     super(DisplayOjo, self).__init__()
     
     logging.basicConfig(level=logging.DEBUG) # Trazas para comprobar el correcto funcionamiento
-    self.setWindowTitle('Diagrama de ojo')
+    self.setWindowTitle('Diagrama de ojo %s' %num)
     #self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/Aplicacion/img/icono.gif'))
     self.setFixedSize(900,700)
     
