@@ -123,9 +123,26 @@ class VentanaPrincipal(QtGui.QWidget):
     # Configuramos el disparo
     self.osc.set_trigger('ext', 0)
     aviso = VentanaInfo('La adquisicion de datos puede tardar un tiempo.\nPulse el boton "Ok" y espere, por favor.')
-    lista_medidas = []
+    lista_medidas1 = []
     
     # Toma 32 trazas del osciloscopio
+    for i in range(32):
+      medidas1 , inc_tiempo1 = self.osc.get_data('1', 500, 2000, '1')
+      lista_medidas1.append(medidas1)
+    
+    self.osc.set_horizontal(base_tiempos[str(tasa_d)]) #Por los qstring de qt4
+    #self.osc.set_vertical("2", "500mv", "DC", "1")
+    
+    lista_medidas2 = []
+    # Toma 32 trazas del osciloscopio
+    for i in range(32):
+      medidas2 , inc_tiempo2 = self.osc.get_data('2', 500, 2000, '1')
+      lista_medidas2.append(medidas2)
+    
+    self.ojo = DisplayOjo(lista_medidas1, inc_tiempo1, lista_medidas2, inc_tiempo2)
+    self.ojo.show()
+    
+    '''# Toma 32 trazas del osciloscopio
     for i in range(32):
       medidas , inc_tiempo = self.osc.get_data('1', 500, 2000, '1')
       lista_medidas.append(medidas)
@@ -144,6 +161,7 @@ class VentanaPrincipal(QtGui.QWidget):
     
     self.ojo2 = DisplayOjo(lista_medidas, inc_tiempo, "Enlace descendente")
     self.ojo2.show()
+    '''
     
     # Quitamos el disiparo externo
     self.osc.set_trigger('1', 0)
@@ -152,17 +170,32 @@ class VentanaPrincipal(QtGui.QWidget):
 
 class DisplayOjo(QtGui.QWidget):
   
-  def __init__(self, medidas, tiempo, num):
+  def __init__(self, medidas1, tiempo1, medidas2, tiempo2):
     super(DisplayOjo, self).__init__()
     
     logging.basicConfig(level=logging.DEBUG) # Trazas para comprobar el correcto funcionamiento
-    self.setWindowTitle('Diagrama de ojo %s' %num)
+    self.setWindowTitle('Diagrama de ojo')
     #self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/Aplicacion/img/icono.gif'))
     self.setFixedSize(900,700)
+    tab_widget = QtGui.QTabWidget()
+    tab1 = QtGui.QWidget()
+    tab2 = QtGui.QWidget()
     
-    self.creaInterfaz(medidas, tiempo)
+    p1 = QtGui.QVBoxLayout(tab1)
+    p2 = QtGui.QVBoxLayout(tab2)
+    
+    tab_widget.addTab(tab1, "Uplink")
+    tab_widget.addTab(tab2, "Downlink")
+    
+    vbox = QtGui.QVBoxLayout()
+    vbox.addWidget(tab_widget)
+    
+    self.creaInterfaz(medidas1, tiempo1, p1)
+    self.creaInterfaz(medidas2, tiempo2, p2)
+    
+    self.setLayout(vbox)
   
-  def creaInterfaz(self, medidas, tiempo):
+  def creaInterfaz(self, medidas, tiempo, p):
     
     self.figure = plt.figure()
     self.canvas = FigureCanvas(self.figure)
@@ -247,13 +280,17 @@ class DisplayOjo(QtGui.QWidget):
       hbox.addWidget(w)
       hbox.setAlignment(w, QtCore.Qt.AlignVCenter)
     
-    vbox = QtGui.QVBoxLayout()
+    '''vbox = QtGui.QVBoxLayout()
     vbox.addWidget(self.canvas)
     vbox.addWidget(self.mpl_toolbar)
     vbox.addWidget(self.resultados_label)
     vbox.addLayout(hbox)
     
-    self.setLayout(vbox)
+    self.setLayout(vbox)'''
+    p.addWidget(self.canvas)
+    p.addWidget(self.mpl_toolbar)
+    p.addWidget(self.resultados_label)
+    p.addLayout(hbox)
     
   
   def botonClick(self):
@@ -283,7 +320,7 @@ class DisplayOjo(QtGui.QWidget):
     logging.debug('entramos en dibuja')
     puntoMuestreo = int(muestreo/self.inc_tiempo)
     amp = []
-    
+    print self.lista_medidas
     for i in range(len(self.lista_medidas)): # Guardamos los puntos entre mas y menos 25 posiciones del punto de muestreo de todas las tramas guardadas
       for j in range(-25, 25):
         try:
