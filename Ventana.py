@@ -34,7 +34,7 @@ class VentanaInfo(QtGui.QWidget):
     win = QtGui.QMessageBox()
     win.setInformativeText(texto)
     win.setWindowTitle('Aviso')
-    #win.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/Aplicacion/img/icono.gif'))
+    win.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/lab_master/img/icono.gif'))
     win.exec_()
 
 class VentanaPrincipal(QtGui.QWidget):
@@ -108,9 +108,8 @@ class VentanaPrincipal(QtGui.QWidget):
     bot_aceptar.clicked.connect(lambda: self.aceptar(desp_tasa_u.currentText(), desp_long_u.currentText(), desp_lambda_u.currentText(), desp_tasa_d.currentText(), desp_long_d.currentText(), desp_lambda_d.currentText()))
     
     self.setLayout(grid)
-    #self.setGeometry(100, 100, 500, 500)
     self.setWindowTitle('FTTH')
-    #self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/Aplicacion/img/icono.gif'))
+    self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/lab_master/img/icono.gif'))
     self.show()
     
   def aceptar(self, tasa_u, long_u, lambda_u, tasa_d, long_d, lambda_d):
@@ -142,30 +141,8 @@ class VentanaPrincipal(QtGui.QWidget):
     self.ojo = DisplayOjo(lista_medidas1, inc_tiempo1, lista_medidas2, inc_tiempo2)
     self.ojo.show()
     
-    '''# Toma 32 trazas del osciloscopio
-    for i in range(32):
-      medidas , inc_tiempo = self.osc.get_data('1', 500, 2000, '1')
-      lista_medidas.append(medidas)
-    
-    self.ojo1 = DisplayOjo(lista_medidas, inc_tiempo, "Enlace ascendente")
-    self.ojo1.show()
-    
-    self.osc.set_horizontal(base_tiempos[str(tasa_d)]) #Por los qstring de qt4
-    #self.osc.set_vertical("2", "500mv", "DC", "1")
-    
-    lista_medidas = []
-    # Toma 32 trazas del osciloscopio
-    for i in range(32):
-      medidas , inc_tiempo = self.osc.get_data('2', 500, 2000, '1')
-      lista_medidas.append(medidas)
-    
-    self.ojo2 = DisplayOjo(lista_medidas, inc_tiempo, "Enlace descendente")
-    self.ojo2.show()
-    '''
-    
     # Quitamos el disiparo externo
     self.osc.set_trigger('1', 0)
-    #print(str(tasa_u), str(long_u), str(lambda_u))
     
 
 class DisplayOjo(QtGui.QWidget):
@@ -175,7 +152,7 @@ class DisplayOjo(QtGui.QWidget):
     
     logging.basicConfig(level=logging.DEBUG) # Trazas para comprobar el correcto funcionamiento
     self.setWindowTitle('Diagrama de ojo')
-    #self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/Aplicacion/img/icono.gif'))
+    self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/lab_master/img/icono.gif'))
     self.setFixedSize(900,700)
     tab_widget = QtGui.QTabWidget()
     tab1 = QtGui.QWidget()
@@ -190,7 +167,7 @@ class DisplayOjo(QtGui.QWidget):
     vbox = QtGui.QVBoxLayout()
     vbox.addWidget(tab_widget)
     
-    # Hacemos las medidas disponibles a tood el objeto
+    # Hacemos las medidas disponibles a todo el objeto
     self.lista_medidas_t1 = medidas1
     self.lista_medidas_t2 = medidas2
     self.inc_tiempo_t1 = tiempo1
@@ -292,23 +269,23 @@ class DisplayOjo(QtGui.QWidget):
     # Creamos las barras horizontales y verticales de los subplots
     plt.figure(1)
     self.var_t1 = 25*self.inc_tiempo_t1
-    self.barMuestreo_t1 = self.ax1_t1.axvline(x=muestreoInit_t1, color='green')
-    self.barMuestreoMas_t1 = self.ax1_t1.axvline(x=muestreoInit_t1 + self.var_t1, color='green', linestyle='--')
-    self.barMuestreoMenos_t1 = self.ax1_t1.axvline(x=muestreoInit_t1 - self.var_t1, color='green', linestyle='--')
-    self.barUmbral_t1 = self.ax1_t1.axhline(y=umbralInit_t1, color='blue')
-    self.barDecision2_t1 = self.ax2_t1.axvline(x=umbralInit_t1, color='blue')
-    self.bar_q_t1 = self.ax3_t1.axvline(x=10, color='blue') # Valor distinto de cero para el logaritmo
-    self.bar_ber_t1 = self.ax3_t1.axhline(y=10, color='blue')
+    self.barMuestreo_t1 = self.ax1_t1.axvline(x=muestreoInit_t1, color='blue')
+    self.barMuestreoMas_t1 = self.ax1_t1.axvline(x=muestreoInit_t1 + self.var_t1, color='blue', linestyle='--')
+    self.barMuestreoMenos_t1 = self.ax1_t1.axvline(x=muestreoInit_t1 - self.var_t1, color='blue', linestyle='--')
+    self.barUmbral_t1 = self.ax1_t1.axhline(y=umbralInit_t1, color='green')
+    self.barDecision2_t1 = self.ax2_t1.axvline(x=umbralInit_t1, color='green')
+    self.bar_q_t1 = self.ax3_t1.axvline(x=10, color='blue', linestyle='--') # Valor distinto de cero para el logaritmo
+    self.bar_ber_t1 = self.ax3_t1.axhline(y=10, color='blue', linestyle='--')
     
     plt.figure(2)
     self.var_t2 = 25*self.inc_tiempo_t2
-    self.barMuestreo_t2 = self.ax1_t2.axvline(x=muestreoInit_t2, color='green')
-    self.barMuestreoMas_t2 = self.ax1_t2.axvline(x=muestreoInit_t2 + self.var_t2, color='green', linestyle='--')
-    self.barMuestreoMenos_t2 = self.ax1_t2.axvline(x=muestreoInit_t2 - self.var_t2, color='green', linestyle='--')
-    self.barUmbral_t2 = self.ax1_t2.axhline(y=umbralInit_t2, color='blue')
-    self.barDecision2_t2 = self.ax2_t2.axvline(x=umbralInit_t2, color='blue')
-    self.bar_q_t2 = self.ax3_t2.axvline(x=10, color='blue') # Valor distinto de cero para el logaritmo
-    self.bar_ber_t2 = self.ax3_t2.axhline(y=10, color='blue')
+    self.barMuestreo_t2 = self.ax1_t2.axvline(x=muestreoInit_t2, color='blue')
+    self.barMuestreoMas_t2 = self.ax1_t2.axvline(x=muestreoInit_t2 + self.var_t2, color='blue', linestyle='--')
+    self.barMuestreoMenos_t2 = self.ax1_t2.axvline(x=muestreoInit_t2 - self.var_t2, color='blue', linestyle='--')
+    self.barUmbral_t2 = self.ax1_t2.axhline(y=umbralInit_t2, color='green')
+    self.barDecision2_t2 = self.ax2_t2.axvline(x=umbralInit_t2, color='green')
+    self.bar_q_t2 = self.ax3_t2.axvline(x=10, color='blue', linestyle='--') # Valor distinto de cero para el logaritmo
+    self.bar_ber_t2 = self.ax3_t2.axhline(y=10, color='blue', linestyle='--')
     
     # Esto hay que hacerlo antes de dibujar para que pueda poner los valores medios, q y la ber
     self.resultados_label_t1 = QtGui.QLabel(self)
@@ -435,17 +412,17 @@ class DisplayOjo(QtGui.QWidget):
     # Pintamos los histogramas y las gaussianas
     self.ax2_t1.cla()
     self.ax2_t1.set_xlabel('amplitud')
-    norm0, bins, patches = self.ax2_t1.hist(val0, bins=200,range=[(5/4)*self.intervalo_amplitud_t1[0], (5/4)*self.intervalo_amplitud_t1[1]], normed=True, histtype='stepfilled', color='#ced8f6', rwidth=100)
+    norm0, bins, patches = self.ax2_t1.hist(val0, bins=200,range=[(5/4)*self.intervalo_amplitud_t1[0], (5/4)*self.intervalo_amplitud_t1[1]], normed=True, histtype='step', color='#8181f7', rwidth=100)
     
-    norm1, bins, patches = self.ax2_t1.hist(val1, bins=200,range=[(5/4)*self.intervalo_amplitud_t1[0], (5/4)*self.intervalo_amplitud_t1[1]], normed=True, histtype='stepfilled', color='#f5a9a9', rwidth=100)
+    norm1, bins, patches = self.ax2_t1.hist(val1, bins=200,range=[(5/4)*self.intervalo_amplitud_t1[0], (5/4)*self.intervalo_amplitud_t1[1]], normed=True, histtype='step', color='#fa5858', rwidth=100)
     
     v0, sigma0 = self.media_y_varianza(val0)
     gauss0 = pylab.normpdf(bins, v0, sigma0)
-    self.ax2_t1.plot(bins, gauss0, linewidth=2, color='#08088a')#azul
+    self.ax2_t1.plot(bins, gauss0, linewidth=2, color='#0404b4')#azul
     
     v1, sigma1 = self.media_y_varianza(val1)
     gauss1 = pylab.normpdf(bins, v1, sigma1)
-    self.ax2_t1.plot(bins, gauss1, linewidth=2, color='#8a0808')#rojo
+    self.ax2_t1.plot(bins, gauss1, linewidth=2, color='#b40404')#rojo
     
     # Calculamos la ber
     q = math.fabs(v1-v0)/(sigma1+sigma0)
@@ -496,17 +473,17 @@ class DisplayOjo(QtGui.QWidget):
     # Pintamos los histogramas y las gaussianas
     self.ax2_t2.cla()
     self.ax2_t2.set_xlabel('amplitud')
-    norm0, bins, patches = self.ax2_t2.hist(val0, bins=200,range=[(5/4)*self.intervalo_amplitud_t2[0], (5/4)*self.intervalo_amplitud_t2[1]], normed=True, histtype='stepfilled', color='#ced8f6', rwidth=100)
+    norm0, bins, patches = self.ax2_t2.hist(val0, bins=200,range=[(5/4)*self.intervalo_amplitud_t2[0], (5/4)*self.intervalo_amplitud_t2[1]], normed=True, histtype='step', color='#8181f7', rwidth=100)
     
-    norm1, bins, patches = self.ax2_t2.hist(val1, bins=200,range=[(5/4)*self.intervalo_amplitud_t2[0], (5/4)*self.intervalo_amplitud_t2[1]], normed=True, histtype='stepfilled', color='#f5a9a9', rwidth=100)
+    norm1, bins, patches = self.ax2_t2.hist(val1, bins=200,range=[(5/4)*self.intervalo_amplitud_t2[0], (5/4)*self.intervalo_amplitud_t2[1]], normed=True, histtype='step', color='#fa5858', rwidth=100)
     
     v0, sigma0 = self.media_y_varianza(val0)
     gauss0 = pylab.normpdf(bins, v0, sigma0)
-    self.ax2_t2.plot(bins, gauss0, linewidth=2, color='#08088a')#azul
+    self.ax2_t2.plot(bins, gauss0, linewidth=2, color='#0404b4')#azul
     
     v1, sigma1 = self.media_y_varianza(val1)
     gauss1 = pylab.normpdf(bins, v1, sigma1)
-    self.ax2_t2.plot(bins, gauss1, linewidth=2, color='#8a0808')#rojo
+    self.ax2_t2.plot(bins, gauss1, linewidth=2, color='#b40404')#rojo
     
     # Calculamos la ber
     q = math.fabs(v1-v0)/(sigma1+sigma0)
