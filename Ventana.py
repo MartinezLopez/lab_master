@@ -218,7 +218,7 @@ class DisplayOjo(QtGui.QWidget):
     plt.figure(1)
     self.ax1_t1.hold(True)
     for i in range(len(self.lista_medidas_t1)):
-      self.ax1_t1.plot(self.lista_tiempo_t1, self.lista_medidas_t1[i], 'y')
+      self.ax1_t1.plot(self.lista_tiempo_t1, self.lista_medidas_t1[i], '#0b610b')
     self.ax1_t1.hold(False)
     self.ax1_t1.set_xlabel('tiempo')
     self.ax1_t1.set_ylabel('amplitud')
@@ -230,7 +230,7 @@ class DisplayOjo(QtGui.QWidget):
     plt.figure(2)
     self.ax1_t2.hold(True)
     for i in range(len(self.lista_medidas_t2)):
-      self.ax1_t2.plot(self.lista_tiempo_t2, self.lista_medidas_t2[i], 'y')
+      self.ax1_t2.plot(self.lista_tiempo_t2, self.lista_medidas_t2[i], '#0b610b')
     self.ax1_t2.hold(False)
     self.ax1_t2.set_xlabel('tiempo')
     self.ax1_t2.set_ylabel('amplitud')
