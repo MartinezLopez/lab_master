@@ -40,6 +40,34 @@ class VentanaInfo(QtGui.QWidget):
     win.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/lab_master/img/icono.gif'))
     win.exec_()
 
+class VentanaAviso(QtGui.QDialog):
+  '''No tiene boton'''
+  
+  def __init__(self, texto):
+    QtGui.QDialog.__init__(self)
+    self.setModal(True)
+    self.inicializa(texto)
+  
+  def inicializa(self, texto):
+    grid = QtGui.QGridLayout()
+    grid.setSpacing(5)
+    
+    aviso = QtGui.QLabel(texto)
+    self.barra = QtGui.QProgressBar(self)
+    self.barra.setMinimum(1)
+    self.barra.setMaximum(64)
+
+    grid.addWidget(aviso, 1, 1)
+    grid.addWidget(self.barra, 2, 1)
+    
+    self.setLayout(grid) 
+    self.setGeometry(200, 200, 200, 200)
+    self.setWindowTitle('Aviso')
+    self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/lab_master/img/icono.gif'))
+    
+  def actualiza_barra(self, val):
+    self.barra.setValue(val)
+
 class VentanaPrincipal(QtGui.QWidget):
   global osc
   
@@ -124,11 +152,14 @@ class VentanaPrincipal(QtGui.QWidget):
     
     # Configuramos el disparo
     self.osc.set_trigger('ext', 0)
-    aviso = VentanaInfo('La adquisicion de datos puede tardar un tiempo.\nPulse el boton "Ok" y espere, por favor.')
+    aviso = VentanaAviso('La adquisicion de datos puede tardar un tiempo.\nEspere, por favor.')
+    aviso.show()
     lista_medidas1 = []
     
     # Toma 32 trazas del osciloscopio
     for i in range(32):
+      aviso.actualiza_barra(i)
+      QtCore.QCoreApplication.processEvents()
       medidas1 , inc_tiempo1 = self.osc.get_data('1', 500, 2000, '1')
       lista_medidas1.append(medidas1)
     
@@ -138,6 +169,8 @@ class VentanaPrincipal(QtGui.QWidget):
     lista_medidas2 = []
     # Toma 32 trazas del osciloscopio
     for i in range(32):
+      aviso.actualiza_barra(i+32)
+      QtCore.QCoreApplication.processEvents()
       medidas2 , inc_tiempo2 = self.osc.get_data('2', 500, 2000, '1')
       lista_medidas2.append(medidas2)
     
