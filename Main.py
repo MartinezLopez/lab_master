@@ -27,6 +27,7 @@ def main():
   '''
   osc_id = get_osc_id()
   app = QtGui.QApplication(sys.argv)
+  app.setStyle("cleanlooks")
   osc = Osciloscopio(osc_id)
   main_window = VentanaPrincipal(osc)
   sys.exit(app.exec_())
