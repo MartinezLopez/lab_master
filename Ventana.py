@@ -2,6 +2,7 @@ import sys
 from PyQt4 import QtGui, QtCore
 from Osciloscopio import *
 #from Modbus import *
+from Pines import *
 import numpy as np
 import time
 import math
@@ -104,7 +105,7 @@ class VentanaPrincipal(QtGui.QWidget):
     desp_lambda_u = QtGui.QComboBox(self)
     desp_lambda_d = QtGui.QComboBox(self)
     
-    tasas = ["5 Mbps","20 Mbps","70 Mbps","150 Mbps"]
+    tasas = ["10 Mbps","32.5 Mbps","80 Mbps","160 Mbps"]
     longitudes = ["4", "8", "12", "16"]
     lambdas = ["850","1300","1550"]
     
@@ -145,7 +146,15 @@ class VentanaPrincipal(QtGui.QWidget):
     
   def aceptar(self, tasa_u, long_u, lambda_u, tasa_d, long_d, lambda_d):
     # Diccionarios
-    base_tiempos = {"5 Mbps":'25ns', "20 Mbps":'10ns', "70 Mbps":'5ns', "150 Mbps":'2.5ns'}
+    base_tiempos = {"10 Mbps":'50ns', "32.5 Mbps":'10ns', "80 Mbps":'5ns', "160 Mbps":'2.5ns'}
+    length = {"4":0, "8":1, "12":2, "16":3}
+    rate = {"160 Mbps":0, "80 Mbps":1, "32.5 Mbps":2, "10 Mbps":3}
+    
+    # Llamada a Pines o a Modbus
+    pines = PinesFPGA()
+    pines.setClock(0)
+    pines.setLength1(length[str(long_u)])
+    pines.setRate1(rate[str(tasa_u)])
     
     self.osc.set_horizontal(base_tiempos[str(tasa_u)]) #Por los qstring de qt4
     self.osc.set_vertical("1", "500mv", "DC", "1")
@@ -163,6 +172,12 @@ class VentanaPrincipal(QtGui.QWidget):
       medidas1 , inc_tiempo1 = self.osc.get_data('1', 500, 2000, '1')
       lista_medidas1.append(medidas1)
     
+    
+    # Llamada a Pines o a Modbus
+    pines.setClock(1)
+    pines.setLength2(length[str(long_d)])
+    pines.setRate2(rate[str(tasa_d)])
+    
     self.osc.set_horizontal(base_tiempos[str(tasa_d)]) #Por los qstring de qt4
     #self.osc.set_vertical("2", "500mv", "DC", "1")
     
@@ -179,6 +194,9 @@ class VentanaPrincipal(QtGui.QWidget):
     
     # Quitamos el disiparo externo
     self.osc.set_trigger('1', 0)
+    
+    #Quitamos los pines
+    pines.quitGPIO()
     
 
 class DisplayOjo(QtGui.QWidget):
@@ -339,6 +357,8 @@ class DisplayOjo(QtGui.QWidget):
     
     self.box1_t1 = QtGui.QLineEdit(self)
     self.box2_t1 = QtGui.QLineEdit(self)
+    self.box1_t1.setText("50")
+    self.box2_t1.setText("50")
     self.muestreo_label_t1 = QtGui.QLabel('Punto de muestreo', self)
     self.umbral_label_t1 = QtGui.QLabel('Umbral', self)
     
@@ -347,6 +367,8 @@ class DisplayOjo(QtGui.QWidget):
     
     self.box1_t2 = QtGui.QLineEdit(self)
     self.box2_t2 = QtGui.QLineEdit(self)
+    self.box1_t2.setText("50")
+    self.box2_t2.setText("50")
     self.muestreo_label_t2 = QtGui.QLabel('Punto de muestreo', self)
     self.umbral_label_t2 = QtGui.QLabel('Umbral', self)
     
