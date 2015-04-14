@@ -86,6 +86,67 @@ class VentanaPrincipal(QtGui.QWidget):
   
   def rellenaVentana(self):
     
+    #grid = QtGui.QGridLayout()
+    #grid.setSpacing(5)
+    grid = QtGui.QVBoxLayout()
+    
+    tit_aptd1 = QtGui.QLabel('Configuracion del generador')
+    tit_aptd2 = QtGui.QLabel('Adquisicion diagrama de ojo')
+    
+    bot_a1 = QtGui.QPushButton('Ir', self)
+    bot_a2 = QtGui.QPushButton('Ir', self)
+    bot_cerrar = QtGui.QPushButton('Cerrar', self)
+    bot_a1.setFixedSize(60,30)
+    bot_a2.setFixedSize(60,30)
+    bot_cerrar.setFixedSize(60,30)
+    
+    l1 = QtGui.QHBoxLayout()
+    l2 = QtGui.QHBoxLayout()
+    l3 = QtGui.QHBoxLayout()
+    
+    l1.addWidget(tit_aptd1)
+    l1.addWidget(bot_a1)
+    l2.addWidget(tit_aptd2)
+    l2.addWidget(bot_a2)
+    l3.addWidget(bot_cerrar)
+    
+    bot_cerrar.clicked.connect(QtCore.QCoreApplication.instance().quit)
+    bot_a1.clicked.connect(lambda: self.long_trama())
+    bot_a2.clicked.connect(lambda: self.ojo())
+    
+    grid.addLayout(l1)
+    grid.addLayout(l2)
+    grid.addLayout(l3)
+    
+    self.setLayout(grid)
+    self.setWindowTitle('Sistemas de Comunicacion')
+    self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/lab_master/img/icono.gif'))
+    self.setFixedSize(280,150)
+    self.show()
+    
+  def long_trama(self):
+    self.c_trama = VentanaConfigIO()
+  
+  def ojo(self):
+    self.ConfOjo = VentanaConfigOjo(self.osc)
+
+class VentanaConfigOjo(QtGui.QWidget):
+  global osc
+  
+  def __init__(self, osciloscopio):
+    ''' Constructor de la ventana de inicio de la aplicacion.
+    
+    Parametros:
+      osciloscopio: Objeto de la clase Osciloscopio
+    
+    '''
+    
+    super(VentanaConfigOjo, self).__init__()
+    self.osc = osciloscopio
+    self.rellenaVentana()
+  
+  def rellenaVentana(self):
+    
     grid = QtGui.QGridLayout()
     grid.setSpacing(5)
     
@@ -95,19 +156,14 @@ class VentanaPrincipal(QtGui.QWidget):
     tit_tasa_d = QtGui.QLabel('Tasa binaria')
     tit_long_u = QtGui.QLabel('Longitud de trama')
     tit_long_d = QtGui.QLabel('Longitud de trama')
-    tit_lambda_u = QtGui.QLabel('Longitud de onda')
-    tit_lambda_d = QtGui.QLabel('Longitud de onda')
     
     desp_tasa_u = QtGui.QComboBox(self)
     desp_tasa_d = QtGui.QComboBox(self)
     desp_long_u = QtGui.QComboBox(self)
     desp_long_d = QtGui.QComboBox(self)
-    desp_lambda_u = QtGui.QComboBox(self)
-    desp_lambda_d = QtGui.QComboBox(self)
     
-    tasas = ["10 Mbps","32.5 Mbps","80 Mbps","160 Mbps"]
+    tasas = ["10 Mbps","30 Mbps","70 Mbps","125 Mbps"]
     longitudes = ["4", "8", "12", "16"]
-    lambdas = ["850","1300","1550"]
     
     for t in tasas:
       desp_tasa_u.addItem(t)
@@ -115,11 +171,8 @@ class VentanaPrincipal(QtGui.QWidget):
     for l in longitudes:
       desp_long_u.addItem(l)
       desp_long_d.addItem(l)
-    for l in lambdas:
-      desp_lambda_u.addItem(l)
-      desp_lambda_d.addItem(l)
     
-    bot_aceptar = QtGui.QPushButton('Aceptar', self)
+    bot_aceptar = QtGui.QPushButton('Adquirir', self)
     
     grid.addWidget(tit_up, 0, 1)
     grid.addWidget(tit_dw, 0, 4)
@@ -127,41 +180,41 @@ class VentanaPrincipal(QtGui.QWidget):
     grid.addWidget(tit_tasa_d, 2, 4)
     grid.addWidget(tit_long_u, 3, 1)
     grid.addWidget(tit_long_d, 3, 4)
-    grid.addWidget(tit_lambda_u, 4, 1)
-    grid.addWidget(tit_lambda_d, 4, 4)
     grid.addWidget(desp_tasa_u, 2, 2)
     grid.addWidget(desp_tasa_d, 2, 5)
     grid.addWidget(desp_long_u, 3, 2)
     grid.addWidget(desp_long_d, 3, 5)
-    grid.addWidget(desp_lambda_u, 4, 2)
-    grid.addWidget(desp_lambda_d, 4, 5)
-    grid.addWidget(bot_aceptar, 5, 3)
+    grid.addWidget(bot_aceptar, 6, 3)
     
-    bot_aceptar.clicked.connect(lambda: self.aceptar(desp_tasa_u.currentText(), desp_long_u.currentText(), desp_lambda_u.currentText(), desp_tasa_d.currentText(), desp_long_d.currentText(), desp_lambda_d.currentText()))
+    bot_aceptar.clicked.connect(lambda: self.aceptar(desp_tasa_u.currentText(), desp_long_u.currentText(), desp_tasa_d.currentText(), desp_long_d.currentText()))
     
     self.setLayout(grid)
     self.setWindowTitle('FTTH')
     self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/lab_master/img/icono.gif'))
     self.show()
     
-  def aceptar(self, tasa_u, long_u, lambda_u, tasa_d, long_d, lambda_d):
+  def aceptar(self, tasa_u, long_u, tasa_d, long_d):
     # Diccionarios
-    base_tiempos = {"10 Mbps":'50ns', "32.5 Mbps":'10ns', "80 Mbps":'5ns', "160 Mbps":'2.5ns'}
+    base_tiempos = {"10 Mbps":'50ns', "30 Mbps":'10ns', "70 Mbps":'5ns', "125 Mbps":'2.5ns'}
     length = {"4":0, "8":1, "12":2, "16":3}
-    rate = {"160 Mbps":0, "80 Mbps":1, "32.5 Mbps":2, "10 Mbps":3}
+    rate = {"125 Mbps":3, "70 Mbps":2, "30 Mbps":1, "10 Mbps":0}
     
     # Llamada a Pines o a Modbus
     pines = PinesFPGA()
-    pines.setClock(0)
+    pines.setClock(1)
+    
     pines.setLength1(length[str(long_u)])
     pines.setRate1(rate[str(tasa_u)])
     
+    pines.setLength2(length[str(long_d)])
+    pines.setRate2(rate[str(tasa_d)])
+    
     self.osc.set_horizontal(base_tiempos[str(tasa_u)]) #Por los qstring de qt4
-    self.osc.set_vertical("1", "500mv", "DC", "1")
+    self.osc.autoset('1')
     
     # Configuramos el disparo
-    self.osc.set_trigger('ext', 0)
-    aviso = VentanaAviso('La adquisicion de datos puede tardar un tiempo.\nEspere, por favor.')
+    self.osc.set_trigger('ext', 1)
+    aviso = VentanaAviso('La adquisicion de datos puede tardar un tiempo.\n\nEspere, por favor.')
     aviso.show()
     lista_medidas1 = []
     
@@ -169,34 +222,30 @@ class VentanaPrincipal(QtGui.QWidget):
     for i in range(32):
       aviso.actualiza_barra(i)
       QtCore.QCoreApplication.processEvents()
-      medidas1 , inc_tiempo1 = self.osc.get_data('1', 500, 2000, '1')
+      medidas1 , inc_tiempo1 = self.osc.get_data('1', 250, 1750, '1')
       lista_medidas1.append(medidas1)
     
-    
-    # Llamada a Pines o a Modbus
-    pines.setClock(1)
-    pines.setLength2(length[str(long_d)])
-    pines.setRate2(rate[str(tasa_d)])
-    
+    pines.setClock(2)
     self.osc.set_horizontal(base_tiempos[str(tasa_d)]) #Por los qstring de qt4
-    #self.osc.set_vertical("2", "500mv", "DC", "1")
+    self.osc.autoset('2')
+    
     
     lista_medidas2 = []
     # Toma 32 trazas del osciloscopio
     for i in range(32):
       aviso.actualiza_barra(i+32)
       QtCore.QCoreApplication.processEvents()
-      medidas2 , inc_tiempo2 = self.osc.get_data('2', 500, 2000, '1')
+      medidas2 , inc_tiempo2 = self.osc.get_data('2', 250, 1750, '1')
       lista_medidas2.append(medidas2)
     
-    self.ojo = DisplayOjo(lista_medidas1, inc_tiempo1, lista_medidas2, inc_tiempo2)
-    self.ojo.show()
+    self.disp_ojo = DisplayOjo(lista_medidas1, inc_tiempo1, lista_medidas2, inc_tiempo2)
+    self.disp_ojo.show()
     
     # Quitamos el disiparo externo
     self.osc.set_trigger('1', 0)
     
     #Quitamos los pines
-    pines.quitGPIO()
+    #pines.quitGPIO()
     
 
 class DisplayOjo(QtGui.QWidget):
@@ -215,8 +264,8 @@ class DisplayOjo(QtGui.QWidget):
     p1 = QtGui.QVBoxLayout(tab1)
     p2 = QtGui.QVBoxLayout(tab2)
     
-    tab_widget.addTab(tab1, "Uplink")
-    tab_widget.addTab(tab2, "Downlink")
+    tab_widget.addTab(tab1, "820 nm")
+    tab_widget.addTab(tab2, "1300 nm")
     
     vbox = QtGui.QVBoxLayout()
     vbox.addWidget(tab_widget)
@@ -323,27 +372,30 @@ class DisplayOjo(QtGui.QWidget):
     # Creamos las barras horizontales y verticales de los subplots
     plt.figure(1)
     self.var_t1 = 25*self.inc_tiempo_t1
-    self.barMuestreo_t1 = self.ax1_t1.axvline(x=muestreoInit_t1, color='blue')
-    self.barMuestreoMas_t1 = self.ax1_t1.axvline(x=muestreoInit_t1 + self.var_t1, color='blue', linestyle='--')
-    self.barMuestreoMenos_t1 = self.ax1_t1.axvline(x=muestreoInit_t1 - self.var_t1, color='blue', linestyle='--')
-    self.barUmbral_t1 = self.ax1_t1.axhline(y=umbralInit_t1, color='green')
+    self.barMuestreo_t1 = self.ax1_t1.axvline(linewidth=3, x=muestreoInit_t1, color='blue')
+    self.barUmbral_t1 = self.ax1_t1.axhline(linewidth=3, y=umbralInit_t1, color='green')
     self.barDecision2_t1 = self.ax2_t1.axvline(x=umbralInit_t1, color='green')
     self.bar_q_t1 = self.ax3_t1.axvline(x=10, color='blue', linestyle='--') # Valor distinto de cero para el logaritmo
     self.bar_ber_t1 = self.ax3_t1.axhline(y=10, color='blue', linestyle='--')
     
     plt.figure(2)
     self.var_t2 = 25*self.inc_tiempo_t2
-    self.barMuestreo_t2 = self.ax1_t2.axvline(x=muestreoInit_t2, color='blue')
-    self.barMuestreoMas_t2 = self.ax1_t2.axvline(x=muestreoInit_t2 + self.var_t2, color='blue', linestyle='--')
-    self.barMuestreoMenos_t2 = self.ax1_t2.axvline(x=muestreoInit_t2 - self.var_t2, color='blue', linestyle='--')
-    self.barUmbral_t2 = self.ax1_t2.axhline(y=umbralInit_t2, color='green')
+    self.barMuestreo_t2 = self.ax1_t2.axvline(linewidth=3, x=muestreoInit_t2, color='blue')
+    self.barUmbral_t2 = self.ax1_t2.axhline(linewidth=3, y=umbralInit_t2, color='green')
     self.barDecision2_t2 = self.ax2_t2.axvline(x=umbralInit_t2, color='green')
     self.bar_q_t2 = self.ax3_t2.axvline(x=10, color='blue', linestyle='--') # Valor distinto de cero para el logaritmo
     self.bar_ber_t2 = self.ax3_t2.axhline(y=10, color='blue', linestyle='--')
     
+    # Creamos la fuente que se va a usar
+    font = QtGui.QFont()
+    font.setFamily(QtCore.QString.fromUtf8("Helvetica"))
+    font.setPixelSize(17)
+    
     # Esto hay que hacerlo antes de dibujar para que pueda poner los valores medios, q y la ber
     self.resultados_label_t1 = QtGui.QLabel(self)
     self.resultados_label_t2 = QtGui.QLabel(self)
+    self.resultados_label_t1.setFont(font)
+    self.resultados_label_t2.setFont(font)
     
     # Pintamos el resto de subplots
     self.dibuja_t1(muestreoInit_t1, umbralInit_t1)
@@ -357,22 +409,44 @@ class DisplayOjo(QtGui.QWidget):
     
     self.box1_t1 = QtGui.QLineEdit(self)
     self.box2_t1 = QtGui.QLineEdit(self)
+    
+    self.box1_t1.setMaxLength(3)
+    self.box2_t1.setMaxLength(3)
+    self.box1_t1.setFixedSize(50, 25)
+    self.box2_t1.setFixedSize(50, 25)
+    
     self.box1_t1.setText("50")
     self.box2_t1.setText("50")
     self.muestreo_label_t1 = QtGui.QLabel('Punto de muestreo', self)
-    self.umbral_label_t1 = QtGui.QLabel('Umbral', self)
+    self.umbral_label_t1 = QtGui.QLabel('Umbral', self)    
+    self.box1_t1.setFont(font)
+    self.box2_t1.setFont(font)
+    self.muestreo_label_t1.setFont(font)
+    self.umbral_label_t1.setFont(font)
     
     self.boton_t1 = QtGui.QPushButton("Pintar", self)
+    self.boton_t1.setFont(font)
     self.connect(self.boton_t1, QtCore.SIGNAL('clicked()'), self.botonClick_t1)
     
     self.box1_t2 = QtGui.QLineEdit(self)
     self.box2_t2 = QtGui.QLineEdit(self)
+    
+    self.box1_t2.setMaxLength(3)
+    self.box2_t2.setMaxLength(3)
+    self.box1_t2.setFixedSize(50, 25)
+    self.box2_t2.setFixedSize(50, 25)
+    
     self.box1_t2.setText("50")
     self.box2_t2.setText("50")
     self.muestreo_label_t2 = QtGui.QLabel('Punto de muestreo', self)
     self.umbral_label_t2 = QtGui.QLabel('Umbral', self)
+    self.box1_t2.setFont(font)
+    self.box2_t2.setFont(font)
+    self.muestreo_label_t2.setFont(font)
+    self.umbral_label_t2.setFont(font)
     
     self.boton_t2 = QtGui.QPushButton("Pintar", self)
+    self.boton_t2.setFont(font)
     self.connect(self.boton_t2, QtCore.SIGNAL('clicked()'), self.botonClick_t2)
     
     hbox_t1 = QtGui.QHBoxLayout()
@@ -380,11 +454,21 @@ class DisplayOjo(QtGui.QWidget):
     
     for w in [self.muestreo_label_t1, self.box1_t1, self.umbral_label_t1, self.box2_t1, self.boton_t1]:
       hbox_t1.addWidget(w)
-      hbox_t1.setAlignment(w, QtCore.Qt.AlignVCenter)
+      
+    hbox_t1.setAlignment(self.muestreo_label_t1, QtCore.Qt.AlignRight)
+    hbox_t1.setAlignment(self.box1_t1, QtCore.Qt.AlignLeft)
+    hbox_t1.setAlignment(self.umbral_label_t1, QtCore.Qt.AlignRight)
+    hbox_t1.setAlignment(self.box2_t1, QtCore.Qt.AlignLeft)
+    hbox_t1.setAlignment(self.boton_t1, QtCore.Qt.AlignRight)
     
     for w in [self.muestreo_label_t2, self.box1_t2, self.umbral_label_t2, self.box2_t2, self.boton_t2]:
       hbox_t2.addWidget(w)
-      hbox_t2.setAlignment(w, QtCore.Qt.AlignVCenter)
+      
+    hbox_t2.setAlignment(self.muestreo_label_t2, QtCore.Qt.AlignRight)
+    hbox_t2.setAlignment(self.box1_t2, QtCore.Qt.AlignLeft)
+    hbox_t2.setAlignment(self.umbral_label_t2, QtCore.Qt.AlignRight)
+    hbox_t2.setAlignment(self.box2_t2, QtCore.Qt.AlignLeft)
+    hbox_t2.setAlignment(self.boton_t2, QtCore.Qt.AlignRight)
     
     p1.addWidget(self.canvas_t1)
     p1.addWidget(self.mpl_toolbar_t1)
@@ -493,8 +577,6 @@ class DisplayOjo(QtGui.QWidget):
     self.ax3_t1.add_line(self.bar_q_t1)
     self.ax3_t1.add_line(self.bar_ber_t1)
     self.barMuestreo_t1.set_xdata(muestreo)
-    self.barMuestreoMas_t1.set_xdata(muestreo + self.var_t1)
-    self.barMuestreoMenos_t1.set_xdata(muestreo - self.var_t1)
     self.barUmbral_t1.set_ydata(umbral)
     self.barDecision2_t1.set_xdata(umbral)
     logging.debug('colocamos las barras en ax3')
@@ -554,8 +636,6 @@ class DisplayOjo(QtGui.QWidget):
     self.ax3_t2.add_line(self.bar_q_t2)
     self.ax3_t2.add_line(self.bar_ber_t2)
     self.barMuestreo_t2.set_xdata(muestreo)
-    self.barMuestreoMas_t2.set_xdata(muestreo + self.var_t2)
-    self.barMuestreoMenos_t2.set_xdata(muestreo - self.var_t2)
     self.barUmbral_t2.set_ydata(umbral)
     self.barDecision2_t2.set_xdata(umbral)
     logging.debug('colocamos las barras en ax3')
@@ -567,12 +647,12 @@ class DisplayOjo(QtGui.QWidget):
     logging.debug('ya se ha redibujado')
   
   def muestra_resultados_t1(self, v0, sigma0, v1, sigma1, q, ber, num0, num1):
-    string = 'v0: ' + str(round(v0,3)) + '\tsigma0: ' + str(round(sigma0,3)) + '\tnumero de muestras0: ' + str(num0) + '\tQ: ' + str(round(q,2)) + '\n\n' + 'v1: ' + str(round(v1,3)) + '\tsigma1: ' + str(round(sigma1,3)) + '\tnumero de muestras1: ' + str(num1) + '\tBER: ' + '%.2e' % ber # se muestra la ber en notacion cientifica
+    string = '\tv0: %-*s Sigma 0: %-*s N. muestras 0: %-*s Q: %-*s \n\n\tv1: %-*s Sigma 1: %-*s N. muestras 1: %-*s BER: %.2e' % (17, str(round(v0,3)), 17, str(round(sigma0,3)), 17, str(num0), 17, str(round(q,2)), 17, str(round(v1,3)), 17, str(round(sigma1,3)), 17, str(num1), ber)
     plt.figure(1)
     self.resultados_label_t1.setText(string)
   
   def muestra_resultados_t2(self, v0, sigma0, v1, sigma1, q, ber, num0, num1):
-    string = 'v0: ' + str(round(v0,3)) + '\tsigma0: ' + str(round(sigma0,3)) + '\tnumero de muestras0: ' + str(num0) + '\tQ: ' + str(round(q,2)) + '\n\n' + 'v1: ' + str(round(v1,3)) + '\tsigma1: ' + str(round(sigma1,3)) + '\tnumero de muestras1: ' + str(num1) + '\tBER: ' + '%.2e' % ber # se muestra la ber en notacion cientifica
+    string = '\tv0: %-*s Sigma 0: %-*s N. muestras 0: %-*s Q: %-*s \n\n\tv1: %-*s Sigma 1: %-*s N. muestras 1: %-*s BER: %.2e' % (17, str(round(v0,3)), 17, str(round(sigma0,3)), 17, str(num0), 17, str(round(q,2)), 17, str(round(v1,3)), 17, str(round(sigma1,3)), 17, str(num1), ber)
     plt.figure(2)
     self.resultados_label_t2.setText(string)
   
@@ -588,4 +668,75 @@ class DisplayOjo(QtGui.QWidget):
     var = math.sqrt(var / (n-1))
     return media, var
 
+class VentanaConfigIO(QtGui.QWidget):
+  
+  def __init__(self):
+    super(VentanaConfigIO, self).__init__()
+    
+    grid = QtGui.QGridLayout()
+    grid.setSpacing(5)
+    
+    tit_rate1 = QtGui.QLabel('Rate 1')
+    tit_rate2 = QtGui.QLabel('Rate 2')
+    tit_len1 = QtGui.QLabel('Length 1')
+    tit_len2 = QtGui.QLabel('Length 2')
+    tit_sync = QtGui.QLabel('Sync')
+    
+    tasas = ["10 Mbps","30 Mbps","70 Mbps","125 Mbps"]
+    longitudes = ["4", "8", "12", "16"]
+    
+    combo_rate1 = QtGui.QComboBox(self)
+    combo_rate2 = QtGui.QComboBox(self)
+    combo_len1 = QtGui.QComboBox(self)
+    combo_len2 = QtGui.QComboBox(self)
+    combo_sync = QtGui.QComboBox(self)
+    
+    for t in tasas:
+      combo_rate1.addItem(t)
+      combo_rate2.addItem(t)
+    
+    for l in longitudes:
+      combo_len1.addItem(l)
+      combo_len2.addItem(l)
+    
+    combo_sync.addItem('sync 1')
+    combo_sync.addItem('sync 2')
+    combo_sync.addItem('SoF 1')
+    combo_sync.addItem('SoF 2')
+    
+    bot_aceptar = QtGui.QPushButton('Aceptar', self)
+    
+    grid.addWidget(tit_rate1, 1, 1)
+    grid.addWidget(combo_rate1, 1, 2)
+    grid.addWidget(tit_len1, 1, 3)
+    grid.addWidget(combo_len1, 1, 4)
+    
+    grid.addWidget(tit_rate2, 2, 1)
+    grid.addWidget(combo_rate2, 2, 2)
+    grid.addWidget(tit_len2, 2, 3)
+    grid.addWidget(combo_len2, 2, 4)
+    
+    grid.addWidget(tit_sync, 3, 2)
+    grid.addWidget(combo_sync, 3, 3)
+    grid.addWidget(bot_aceptar, 3, 5)
+    
+    bot_aceptar.clicked.connect(lambda: self.aceptar(combo_rate1.currentText(), combo_rate2.currentText(), combo_len1.currentText(), combo_len2.currentText(), combo_sync.currentText()))
+    
+    self.setLayout(grid)
+    self.setWindowTitle('Configuracion del generador')
+    self.setWindowIcon(QtGui.QIcon('/home/debian/Desktop/lab_master/img/icono.gif'))
+    self.setFixedSize(420, 130)
+    self.show()
+    
+  def aceptar(self, rate1, rate2, len1, len2, sync):
+    length = {"4":0, "8":1, "12":2, "16":3}
+    rate = {"10 Mbps":0, "30 Mbps":1, "70 Mbps":2, "125 Mbps":3}
+    syn = {'sync 1':1, 'sync 2':2, 'SoF 1':3, 'SoF 2':4}
+    
+    pines = PinesFPGA()
+    pines.setClock(syn[str(sync)])
+    pines.setLength1(length[str(len1)])
+    pines.setRate1(rate[str(rate1)])
+    pines.setLength2(length[str(len2)])
+    pines.setRate2(rate[str(rate2)])
 

@@ -174,17 +174,21 @@ class Osciloscopio:
     # Los sleep despues de cada escritura son necesarios porque al osciloscopio no le da tiempo a configurarse tan rapido y devuelve un error
     ch = self.canal[channel]
     tipo_medida = self.medidas[medida]
-    
-    self.ins.write_raw("MEASU:IMM:SOU " + ch)
-    time.sleep(0.5)
-    self.ins.write_raw("MEASU:IMM:TYP " + tipo_medida)
-    time.sleep(0.5)
-    value = self.ins.ask_raw("MEASU:IMM:VAL?")
-    value = self.formatter(value)
-    units = self.ins.ask_raw("MEASU:IMM:UNI?")
-    value = value + units[1:-2] #para quitar las comillas
-    
-    return value
+    intentos = 0
+    while intentos < 5:
+      try:
+        self.ins.write_raw("MEASU:IMM:SOU " + ch)
+        time.sleep(0.5)
+        self.ins.write_raw("MEASU:IMM:TYP " + tipo_medida)
+        time.sleep(0.5)
+        value = self.ins.ask_raw("MEASU:IMM:VAL?")
+        value = self.formatter(value)
+        units = self.ins.ask_raw("MEASU:IMM:UNI?")
+        value = value + units[1:-2] #para quitar las comillas
+        
+        return value
+      except Exception as e:
+        intentos += 1
   
   def formatter(self, value):
     ''' Cambia un numero de notacion cientifica a notacion ingenieril, desde pico hasta tera.
@@ -290,6 +294,18 @@ class Osciloscopio:
     if num == '9.9 E37':
       num = 'Err '
     return num
+  
+  def autoset(self, channel):
+    ch = self.canal[channel]
+    unidades = {'V':'', 'mV':'E-3'}
+    self.ins.write(ch + ":POS 0.0")
+    self.set_vertical(channel, '50mv', "AC", "1")
+    time.sleep(0.5)
+    medida = self.get_measure(channel, 'vpp')
+    a, b = medida.split(' ')
+    a = str(float(a)/6)
+    c = unidades[b]
+    self.ins.write(ch + ":VOL " + a + c)
     
 
 
