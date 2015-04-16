@@ -306,6 +306,9 @@ class Osciloscopio:
     a = str(float(a)/6)
     c = unidades[b]
     self.ins.write(ch + ":VOL " + a + c)
+  
+  def set_persistence_off(self): #Se deja asi porque de momento no interesa la persistencia, pero se podria poner en cualquier momento
+    self.ins.write("DIS:PERS OFF")
     
 
 

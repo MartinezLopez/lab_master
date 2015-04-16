@@ -199,6 +199,10 @@ class VentanaConfigOjo(QtGui.QWidget):
     length = {"4":0, "8":1, "12":2, "16":3}
     rate = {"125 Mbps":3, "70 Mbps":2, "30 Mbps":1, "10 Mbps":0}
     
+    # Mostramos los dos canales del osciloscopio
+    self.osc.disp_channel(True, '1')
+    self.osc.disp_channel(True, '2')
+    
     # Llamada a Pines o a Modbus
     pines = PinesFPGA()
     pines.setClock(1)
@@ -209,6 +213,8 @@ class VentanaConfigOjo(QtGui.QWidget):
     pines.setLength2(length[str(long_d)])
     pines.setRate2(rate[str(tasa_d)])
     
+    self.osc.set_display("YT")
+    self.osc.set_persistence_off()
     self.osc.set_horizontal(base_tiempos[str(tasa_u)]) #Por los qstring de qt4
     self.osc.autoset('1')
     
@@ -407,127 +413,41 @@ class DisplayOjo(QtGui.QWidget):
     plt.figure(2)
     self.mpl_toolbar_t2 = NavigationToolbar(self.canvas_t2, self)
     
-    self.box1_t1 = QtGui.QLineEdit(self)
-    self.box2_t1 = QtGui.QLineEdit(self)
-    
-    self.box1_t1.setMaxLength(3)
-    self.box2_t1.setMaxLength(3)
-    self.box1_t1.setFixedSize(50, 25)
-    self.box2_t1.setFixedSize(50, 25)
-    
-    self.box1_t1.setText("50")
-    self.box2_t1.setText("50")
-    self.muestreo_label_t1 = QtGui.QLabel('Punto de muestreo', self)
-    self.umbral_label_t1 = QtGui.QLabel('Umbral', self)    
-    self.box1_t1.setFont(font)
-    self.box2_t1.setFont(font)
-    self.muestreo_label_t1.setFont(font)
-    self.umbral_label_t1.setFont(font)
-    
-    self.boton_t1 = QtGui.QPushButton("Pintar", self)
-    self.boton_t1.setFont(font)
-    self.connect(self.boton_t1, QtCore.SIGNAL('clicked()'), self.botonClick_t1)
-    
-    self.box1_t2 = QtGui.QLineEdit(self)
-    self.box2_t2 = QtGui.QLineEdit(self)
-    
-    self.box1_t2.setMaxLength(3)
-    self.box2_t2.setMaxLength(3)
-    self.box1_t2.setFixedSize(50, 25)
-    self.box2_t2.setFixedSize(50, 25)
-    
-    self.box1_t2.setText("50")
-    self.box2_t2.setText("50")
-    self.muestreo_label_t2 = QtGui.QLabel('Punto de muestreo', self)
-    self.umbral_label_t2 = QtGui.QLabel('Umbral', self)
-    self.box1_t2.setFont(font)
-    self.box2_t2.setFont(font)
-    self.muestreo_label_t2.setFont(font)
-    self.umbral_label_t2.setFont(font)
-    
-    self.boton_t2 = QtGui.QPushButton("Pintar", self)
-    self.boton_t2.setFont(font)
-    self.connect(self.boton_t2, QtCore.SIGNAL('clicked()'), self.botonClick_t2)
-    
-    hbox_t1 = QtGui.QHBoxLayout()
-    hbox_t2 = QtGui.QHBoxLayout()
-    
-    for w in [self.muestreo_label_t1, self.box1_t1, self.umbral_label_t1, self.box2_t1, self.boton_t1]:
-      hbox_t1.addWidget(w)
-      
-    hbox_t1.setAlignment(self.muestreo_label_t1, QtCore.Qt.AlignRight)
-    hbox_t1.setAlignment(self.box1_t1, QtCore.Qt.AlignLeft)
-    hbox_t1.setAlignment(self.umbral_label_t1, QtCore.Qt.AlignRight)
-    hbox_t1.setAlignment(self.box2_t1, QtCore.Qt.AlignLeft)
-    hbox_t1.setAlignment(self.boton_t1, QtCore.Qt.AlignRight)
-    
-    for w in [self.muestreo_label_t2, self.box1_t2, self.umbral_label_t2, self.box2_t2, self.boton_t2]:
-      hbox_t2.addWidget(w)
-      
-    hbox_t2.setAlignment(self.muestreo_label_t2, QtCore.Qt.AlignRight)
-    hbox_t2.setAlignment(self.box1_t2, QtCore.Qt.AlignLeft)
-    hbox_t2.setAlignment(self.umbral_label_t2, QtCore.Qt.AlignRight)
-    hbox_t2.setAlignment(self.box2_t2, QtCore.Qt.AlignLeft)
-    hbox_t2.setAlignment(self.boton_t2, QtCore.Qt.AlignRight)
-    
     p1.addWidget(self.canvas_t1)
     p1.addWidget(self.mpl_toolbar_t1)
     p1.addWidget(self.resultados_label_t1)
-    p1.addLayout(hbox_t1)
     
     p2.addWidget(self.canvas_t2)
     p2.addWidget(self.mpl_toolbar_t2)
     p2.addWidget(self.resultados_label_t2)
-    p2.addLayout(hbox_t2)
+    
+    self.cid_t1 = self.figure_t1.canvas.mpl_connect('button_press_event', self.on_press_t1)
+    self.cid_t2 = self.figure_t2.canvas.mpl_connect('button_press_event', self.on_press_t2)
   
-  def botonClick_t1(self):
+  def on_press_t1(self, event):
+    valMuestreo = event.xdata
+    valUmbral = event.ydata
     
-    logging.debug('entramos en la rutina botonclick de la primera pestana')
-    muestreo = int(self.box1_t1.text()) # Cogemos los valores de los porcentajes como enteros de las cajas de texto
-    umbral = int(self.box2_t1.text())
+    if (valMuestreo < 0) or (valMuestreo > self.lista_tiempo_t1[len(self.lista_tiempo_t1)-1]):
+      valMuestreo = self.lista_tiempo_t1[750]
+    if (valUmbral < self.intervalo_amplitud_t1[0]) or (valUmbral > self.intervalo_amplitud_t1[1]):
+      valUmbral = (self.intervalo_amplitud_t1[0] + self.intervalo_amplitud_t1[1]) / 2
     
-    if muestreo > 100: # Nos aseguramos de que estan entre cero y cien
-      muestreo = 100
-    if muestreo < 0:
-      muestreo = 0
-    muestreo = muestreo/100.0 # Los ponemos en tanto por uno y los convertimos a decimales
-    
-    if umbral > 100: # Nos aseguramos de que estan entre cero y cien
-      umbral = 100
-    if umbral < 0:
-      umbral = 0
-    umbral = umbral/100.0 # Los ponemos en tanto por uno y los convertimos a decimales
-    
-    # Calculamos con que valores corresponden los porcentajes
-    valMuestreo = (muestreo*self.lista_tiempo_t1[len(self.lista_tiempo_t1)-1])
-    valUmbral = ((self.intervalo_amplitud_t1[1] - self.intervalo_amplitud_t1[0]) * umbral) + self.intervalo_amplitud_t1[0]
     logging.debug('muestreo %s umbral %s', str(valMuestreo), str(valUmbral))    
     self.dibuja_t1(valMuestreo, valUmbral)
   
-  def botonClick_t2(self):
+  def on_press_t2(self, event):
+    valMuestreo = event.xdata
+    valUmbral = event.ydata
     
-    logging.debug('entramos en la rutina botonclick de la segunda pestana')
-    muestreo = int(self.box1_t2.text()) # Cogemos los valores de los porcentajes como enteros de las cajas de texto
-    umbral = int(self.box2_t2.text())
+    if (valMuestreo < 0) or (valMuestreo > self.lista_tiempo_t2[len(self.lista_tiempo_t2)-1]):
+      valMuestreo = self.lista_tiempo_t2[750]
+    if (valUmbral < self.intervalo_amplitud_t2[0]) or (valUmbral > self.intervalo_amplitud_t2[1]):
+      valUmbral = (self.intervalo_amplitud_t2[0] + self.intervalo_amplitud_t2[1]) / 2
     
-    if muestreo > 100: # Nos aseguramos de que estan entre cero y cien
-      muestreo = 100
-    if muestreo < 0:
-      muestreo = 0
-    muestreo = muestreo/100.0 # Los ponemos en tanto por uno y los convertimos a decimales
-    
-    if umbral > 100: # Nos aseguramos de que estan entre cero y cien
-      umbral = 100
-    if umbral < 0:
-      umbral = 0
-    umbral = umbral/100.0 # Los ponemos en tanto por uno y los convertimos a decimales
-    
-    # Calculamos con que valores corresponden los porcentajes
-    valMuestreo = (muestreo*self.lista_tiempo_t2[len(self.lista_tiempo_t2)-1])
-    valUmbral = ((self.intervalo_amplitud_t2[1] - self.intervalo_amplitud_t2[0]) * umbral) + self.intervalo_amplitud_t2[0]
     logging.debug('muestreo %s umbral %s', str(valMuestreo), str(valUmbral))    
     self.dibuja_t2(valMuestreo, valUmbral)
-  
+    
   def dibuja_t1(self, muestreo, umbral):
     plt.figure(1)
     logging.debug('entramos en dibuja')
@@ -647,12 +567,12 @@ class DisplayOjo(QtGui.QWidget):
     logging.debug('ya se ha redibujado')
   
   def muestra_resultados_t1(self, v0, sigma0, v1, sigma1, q, ber, num0, num1):
-    string = '\tv0: %-*s Sigma 0: %-*s N. muestras 0: %-*s Q: %-*s \n\n\tv1: %-*s Sigma 1: %-*s N. muestras 1: %-*s BER: %.2e' % (17, str(round(v0,3)), 17, str(round(sigma0,3)), 17, str(num0), 17, str(round(q,2)), 17, str(round(v1,3)), 17, str(round(sigma1,3)), 17, str(num1), ber)
+    string = '\tv0: %-*s Sigma 0: %-*s N. muestras 0: %-*s Q: %-*s \n\n\tv1: %-*s Sigma 1: %-*s N. muestras 1: %-*s BER: %.2e' % (17, str(round(v0*1000,1))+' mV', 17, str(round(sigma0*1000,1))+' mV', 17, str(num0), 17, str(round(q,2)), 17, str(round(v1*1000,1))+' mV', 17, str(round(sigma1*1000,1))+' mV', 17, str(num1), ber)
     plt.figure(1)
     self.resultados_label_t1.setText(string)
   
   def muestra_resultados_t2(self, v0, sigma0, v1, sigma1, q, ber, num0, num1):
-    string = '\tv0: %-*s Sigma 0: %-*s N. muestras 0: %-*s Q: %-*s \n\n\tv1: %-*s Sigma 1: %-*s N. muestras 1: %-*s BER: %.2e' % (17, str(round(v0,3)), 17, str(round(sigma0,3)), 17, str(num0), 17, str(round(q,2)), 17, str(round(v1,3)), 17, str(round(sigma1,3)), 17, str(num1), ber)
+    string = '\tv0: %-*s Sigma 0: %-*s N. muestras 0: %-*s Q: %-*s \n\n\tv1: %-*s Sigma 1: %-*s N. muestras 1: %-*s BER: %.2e' % (17, str(round(v0*1000,1))+' mV', 17, str(round(sigma0*1000,1))+' mV', 17, str(num0), 17, str(round(q,2)), 17, str(round(v1*1000,1))+' mV', 17, str(round(sigma1*1000,1))+' mV', 17, str(num1), ber)
     plt.figure(2)
     self.resultados_label_t2.setText(string)
   
